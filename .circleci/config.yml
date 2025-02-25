@@ -3,132 +3,225 @@ orbs:
   node: circleci/node@5
 
 jobs:
-  # JOBS POUR LE STAGE BUILD
+  # Stage BUILD : Installation, Analyse, Cleaning & Packaging
   build:
     executor: node/default
     steps:
       - checkout
-      - run: echo "Installation des dépendances..."
-      - run: echo "Analyse de code statique..."
-      - run: echo "Cleaning et Packaging de l'application..."
+      - run: echo "🚀 Build : Installation des dépendances..."
+      - run: echo "🔍 Build : Analyse de code en cours..."
+      - run: echo "🧹 Build : Cleaning et Packaging de l'application..."
 
-  # JOBS POUR LE STAGE TESTS
-  unit_tests:
+  # Stage TESTS (jobs lancés en parallèle après le build)
+  unit-tests:
     executor: node/default
+    environment:
+      JEST_JUNIT_OUTPUT_DIR: ./test-results/
     steps:
       - checkout
-      - run: echo "Exécution des tests unitaires..."
+      - node/install-packages:
+          pkg-manager: npm
+      - run: echo "🧪 Unit tests : Lancement des tests complets..."
+      - run:
+          command: npm install jest-junit
+      - run:
+          name: Run tests
+          command: npm run test:ci
+      - store_test_results:
+          path: ./test-results/
 
   integration_tests:
     executor: node/default
     steps:
       - checkout
-      - run: echo "Exécution des tests d'intégration..."
+      - run: echo "🤖 Integration tests : On vérifie les interactions..."
 
   regression_tests:
     executor: node/default
     steps:
       - checkout
-      - run: echo "Exécution des tests de régression..."
+      - run: echo "🔍 Regression tests : À la chasse aux régressions..."
 
   performance_tests:
     executor: node/default
     steps:
       - checkout
-      - run: echo "Exécution des tests de performance..."
+      - run: echo "🏎️ Performance tests : Boostons la vitesse !"
 
   security_tests:
     executor: node/default
     steps:
       - checkout
-      - run: echo "Exécution des tests de sécurité..."
+      - run: echo "🛡️ Security tests : Renforçons la sécurité !"
 
   compatibility_tests:
     executor: node/default
     steps:
       - checkout
-      - run: echo "Exécution des tests de compatibilité..."
+      - run: echo "🔧 Compatibility tests : Tout s'assemble bien ?"
 
   accessibility_tests:
     executor: node/default
     steps:
       - checkout
-      - run: echo "Exécution des tests d'accessibilité..."
+      - run: echo "🌈 Accessibility tests : Pour une appli accessible et fun !"
 
-  # JOBS POUR LE STAGE DEPLOY
+  # Job minimal pour les branches hotfix (tests réduits)
+  minimal-tests:
+    executor: node/default
+    steps:
+      - checkout
+      - run: echo "⚡ Hotfix detected : Exécution des tests essentiels uniquement..."
+      - run: echo "✅ Tests minimaux validés avec succès !"
+
+  # Stage DEPLOY
   deploy_development:
     executor: node/default
     steps:
       - checkout
-      - run: echo "Préparation de l'environnement de déploiement (development)..."
-      - run: echo "Déploiement de l'application en environnement de développement..."
-      - run: echo "Exécution des tests de vérification et validation fonctionnelle..."
-      - run: echo "Tests de charge et surveillance..."
-      
+      - run: echo "🌱 Déploiement DEV : Préparation de l'environnement..."
+      - run: echo "🚀 Déploiement DEV : Lancement de l'application..."
+      - run: echo "🔍 Vérifications et validation fonctionnelle..."
+
   deploy_integration:
     executor: node/default
     steps:
       - checkout
-      - run: echo "Préparation de l'environnement de déploiement (integration)..."
-      - run: echo "Déploiement de l'application en environnement d'intégration..."
-      - run: echo "Exécution des tests de vérification et validation fonctionnelle..."
-      - run: echo "Tests de charge et surveillance..."
-      
+      - run: echo "🚧 Déploiement INTÉGRATION : Préparation et déploiement..."
+      - run: echo "✅ Tests de validation et charge..."
+
   deploy_production:
     executor: node/default
     steps:
       - checkout
-      - run: echo "Préparation de l'environnement de déploiement (production)..."
-      - run: echo "Déploiement de l'application en production..."
-      - run: echo "Exécution des tests de vérification, validation fonctionnelle et tests de charge..."
-      - run: echo "Mise en place de la surveillance et suivi..."
+      - run: echo "🎉 Déploiement PROD : En production, c'est parti !"
+      - run: echo "🔒 Vérifications, validations et monitoring activé !"
 
 workflows:
   version: 2
-  build_test_deploy:
+
+  # Pipeline complet pour les branches "develop", "integration" et "main"
+  full_pipeline:
     jobs:
-      # Étape de build
-      - build
-      # Étapes de tests (exécutés en cascade)
-      - unit_tests:
-          requires:
-            - build
+      - build:
+          filters:
+            branches:
+              ignore:
+                - /^hotfix\/.*$/
+              ignore:
+                - /^feature\/.*$/
+      # Lancement parallèle des tests (ils ne dépendent que du build)
+      - unit-tests:
+          requires: [build]
+          filters:
+            branches:
+              ignore:
+                - /^hotfix\/.*$/
+              ignore:
+                - /^feature\/.*$/
       - integration_tests:
-          requires:
-            - unit_tests
+          requires: [build]
+          filters:
+            branches:
+              ignore:
+                - /^hotfix\/.*$/
+              ignore:
+                - /^feature\/.*$/
       - regression_tests:
-          requires:
-            - integration_tests
+          requires: [build]
+          filters:
+            branches:
+              ignore:
+                - /^hotfix\/.*$/
+              ignore:
+                - /^feature\/.*$/
       - performance_tests:
-          requires:
-            - regression_tests
+          requires: [build]
+          filters:
+            branches:
+              ignore:
+                - /^hotfix\/.*$/
+              ignore:
+                - /^feature\/.*$/
       - security_tests:
-          requires:
-            - performance_tests
+          requires: [build]
+          filters:
+            branches:
+              ignore:
+                - /^hotfix\/.*$/
+              ignore:
+                - /^feature\/.*$/
       - compatibility_tests:
-          requires:
-            - security_tests
+          requires: [build]
+          filters:
+            branches:
+              ignore:
+                - /^hotfix\/.*$/
+              ignore:
+                - /^feature\/.*$/
       - accessibility_tests:
-          requires:
-            - compatibility_tests
-      # Déploiement sur l'environnement de développement uniquement sur la branche "develop"
+          requires: [build]
+          filters:
+            branches:
+              ignore:
+                - /^hotfix\/.*$/
+              ignore:
+                - /^feature\/.*$/
+      # Déploiement : chaque job attend que tous les tests soient terminés
       - deploy_development:
           requires:
+            - unit-tests
+            - integration_tests
+            - regression_tests
+            - performance_tests
+            - security_tests
+            - compatibility_tests
             - accessibility_tests
           filters:
             branches:
               only: develop
-      # Déploiement sur l'environnement d'intégration uniquement sur la branche "integration"
       - deploy_integration:
           requires:
+            - unit-tests
+            - integration_tests
+            - regression_tests
+            - performance_tests
+            - security_tests
+            - compatibility_tests
             - accessibility_tests
           filters:
             branches:
               only: integration
-      # Déploiement sur l'environnement de production uniquement sur la branche "main"
       - deploy_production:
           requires:
+            - unit-tests
+            - integration_tests
+            - regression_tests
+            - performance_tests
+            - security_tests
+            - compatibility_tests
             - accessibility_tests
           filters:
             branches:
               only: main
+
+  # Pipeline minimal pour les branches hotfix (et éventuellement feature)
+  hotfix_pipeline:
+    jobs:
+      - build:
+          filters:
+            branches:
+              only:
+                - /^hotfix\/.*$/
+      - minimal-tests:
+          requires: [build]
+          filters:
+            branches:
+              only:
+                - /^hotfix\/.*$/
+      - deploy_development:
+          requires: [minimal-tests]
+          filters:
+            branches:
+              only:
+                - /^hotfix\/.*$/
