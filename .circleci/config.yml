@@ -84,23 +84,36 @@ jobs:
 
   # STAGE MERGE FEATURE -> DEVELOP (Pull Request automatique)
   create_pr_feature:
-    executor: node/default
-    steps:
-      - checkout
-      - run: |
-          echo "🔄 Récupération des commits de la branche feature..."
-          git fetch origin develop
-          COMMITS=$(git log origin/develop..HEAD --pretty=format:"- %h %s" | sed ':a;N;$!ba;s/\n/\\n/g')
-          echo "📋 Messages de commit récupérés :"
-          echo -e "$COMMITS"
+      executor: node/default
+      steps:
+        - checkout
+        - run: |
+            echo "🔄 Fetching the latest commits from develop..."
+            git fetch origin develop || echo "⚠️ Failed to fetch develop branch"
 
-          echo "🚀 Création de la Pull Request..."
-          echo $GITHUB_TOKEN | gh auth login --with-token
-          gh pr create \
-            --base develop \
-            --head ${CIRCLE_BRANCH} \
-            --title "🚀 Feature prête : ${CIRCLE_BRANCH}" \
-            --body "Voici les commits inclus dans cette PR :%0A%0A$COMMITS"
+            echo "📋 Retrieving commit messages from the feature branch..."
+            COMMITS=$(git log origin/develop..HEAD --pretty=format:"- %h %s")
+            
+            if [[ -z "$COMMITS" ]]; then
+              echo "❌ No new commits found! Aborting PR creation."
+              exit 1
+            fi
+
+            echo "✅ Commits found:"
+            echo "$COMMITS"
+
+            # Convert newline characters for GitHub Markdown formatting
+            COMMITS_FORMATTED=$(echo "$COMMITS" | sed ':a;N;$!ba;s/\n/%0A/g')
+
+            echo "🚀 Creating Pull Request on GitHub..."
+            echo "$GITHUB_TOKEN" | gh auth login --with-token || echo "⚠️ GitHub authentication failed!"
+
+            gh pr create \
+              --base develop \
+              --head ${CIRCLE_BRANCH} \
+              --title "🚀 Feature ready: ${CIRCLE_BRANCH}" \
+              --body "### Commits included in this PR:%0A%0A$COMMITS_FORMATTED"
+
 
   # STAGE MERGE HOTFIX -> MAIN (Fusion automatique)
   merge_hotfix_main:
