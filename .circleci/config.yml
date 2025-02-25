@@ -84,16 +84,23 @@ jobs:
 
   # STAGE MERGE FEATURE -> DEVELOP (Pull Request automatique)
   create_pr_feature:
-      executor: node/default
-      steps:
-        - checkout
-        - run: |
+    executor: node/default
+    steps:
+      - checkout
+      - run:
+          name: Install GitHub CLI
+          command: |
+            echo "🔄 Installing GitHub CLI..."
+            sudo apt update && sudo apt install -y gh
+      - run:
+          name: Create Pull Request
+          command: |
             echo "🔄 Fetching the latest commits from develop..."
             git fetch origin develop || echo "⚠️ Failed to fetch develop branch"
 
             echo "📋 Retrieving commit messages from the feature branch..."
             COMMITS=$(git log origin/develop..HEAD --pretty=format:"- %h %s")
-            
+
             if [[ -z "$COMMITS" ]]; then
               echo "❌ No new commits found! Aborting PR creation."
               exit 1
@@ -113,7 +120,6 @@ jobs:
               --head ${CIRCLE_BRANCH} \
               --title "🚀 Feature ready: ${CIRCLE_BRANCH}" \
               --body "### Commits included in this PR:%0A%0A$COMMITS_FORMATTED"
-
 
   # STAGE MERGE HOTFIX -> MAIN (Fusion automatique)
   merge_hotfix_main:
