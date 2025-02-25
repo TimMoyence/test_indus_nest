@@ -106,7 +106,7 @@ jobs:
             COMMITS_FORMATTED=$(echo "$COMMITS" | sed ':a;N;$!ba;s/\n/%0A/g')
 
             echo "🚀 Creating Pull Request on GitHub..."
-            echo "$GITHUB_TOKEN" | gh auth login --with-token || echo "⚠️ GitHub authentication failed!"
+            echo "$GITHUB_TOKEN_JEST" | gh auth login --with-token || echo "⚠️ GitHub authentication failed!"
 
             gh pr create \
               --base develop \
