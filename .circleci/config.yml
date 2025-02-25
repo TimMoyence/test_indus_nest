@@ -1,18 +1,19 @@
 version: 2.1
 orbs:
   node: circleci/node@5
+  github: circleci/github-cli@2
 
 jobs:
-  # Stage BUILD : Installation, Analyse, Cleaning & Packaging
+  # STAGE BUILD
   build:
     executor: node/default
     steps:
       - checkout
-      - run: echo "🚀 Build - Installation des dépendances..."
-      - run: echo "🔍 Build - Analyse de code en cours..."
-      - run: echo "🧹 Build - Cleaning et Packaging de l'application..."
+      - run: echo "🚀 Installation des dépendances..."
+      - run: echo "🔍 Analyse de code..."
+      - run: echo "🧹 Cleaning et Packaging..."
 
-  # Stage TESTS (jobs lancés en parallèle après le build)
+  # STAGE TESTS (Parallélisation)
   unit-tests:
     executor: node/default
     environment:
@@ -21,7 +22,7 @@ jobs:
       - checkout
       - node/install-packages:
           pkg-manager: npm
-      - run: echo "🧪 Unit tests - Lancement des tests complets..."
+      - run: echo "🧪 Running unit tests..."
       - run:
           command: npm install jest-junit
       - run:
@@ -34,132 +35,110 @@ jobs:
     executor: node/default
     steps:
       - checkout
-      - run: echo "🤖 Integration tests - On vérifie les interactions..."
+      - run: echo "🤖 Running integration tests..."
 
   regression_tests:
     executor: node/default
     steps:
       - checkout
-      - run: echo "🔍 Regression tests - À la chasse aux régressions..."
+      - run: echo "🔍 Running regression tests..."
 
   performance_tests:
     executor: node/default
     steps:
       - checkout
-      - run: echo "🏎️ Performance tests - Boostons la vitesse !"
+      - run: echo "🏎️ Running performance tests..."
 
   security_tests:
     executor: node/default
     steps:
       - checkout
-      - run: echo "🛡️ Security tests - Renforçons la sécurité !"
+      - run: echo "🛡️ Running security tests..."
 
   compatibility_tests:
     executor: node/default
     steps:
       - checkout
-      - run: echo "🔧 Compatibility tests - Tout s'assemble bien ?"
+      - run: echo "🔧 Running compatibility tests..."
 
   accessibility_tests:
     executor: node/default
     steps:
       - checkout
-      - run: echo "🌈 Accessibility tests - Pour une appli accessible et fun !"
+      - run: echo "🌈 Running accessibility tests..."
 
-  # Job minimal pour les branches hotfix (tests réduits)
-  minimal-tests:
-    executor: node/default
-    steps:
-      - checkout
-      - run: echo "⚡ Hotfix detected - Exécution des tests essentiels uniquement..."
-      - run: echo "✅ Tests minimaux validés avec succès !"
-
-  # Stage DEPLOY
+  # STAGE DEPLOYMENT
   deploy_development:
     executor: node/default
     steps:
       - checkout
-      - run: echo "🌱 Déploiement DEV - Préparation de l'environnement..."
-      - run: echo "🚀 Déploiement DEV - Lancement de l'application..."
-      - run: echo "🔍 Vérifications et validation fonctionnelle..."
-
-  deploy_integration:
-    executor: node/default
-    steps:
-      - checkout
-      - run: echo "🚧 Déploiement INTÉGRATION - Préparation et déploiement..."
-      - run: echo "✅ Tests de validation et charge..."
+      - run: echo "🌱 Deploying to development..."
+      - run: echo "🔍 Running verification and functional tests..."
 
   deploy_production:
     executor: node/default
     steps:
       - checkout
-      - run: echo "🎉 Déploiement PROD - En production, c'est parti !"
-      - run: echo "🔒 Vérifications, validations et monitoring activé !"
+      - run: echo "🎉 Deploying to production..."
+      - run: echo "🔒 Running final validation and monitoring..."
+
+  # STAGE MERGE FEATURE -> DEVELOP (Pull Request automatique)
+  create_pr_feature:
+    executor: node/default
+    steps:
+      - checkout
+      - run: |
+          echo "🔄 Récupération des commits de la branche feature..."
+          git fetch origin develop
+          COMMITS=$(git log origin/develop..HEAD --pretty=format:"- %h %s" | sed ':a;N;$!ba;s/\n/\\n/g')
+          echo "📋 Messages de commit récupérés :"
+          echo -e "$COMMITS"
+
+          echo "🚀 Création de la Pull Request..."
+          echo $GITHUB_TOKEN | gh auth login --with-token
+          gh pr create \
+            --base develop \
+            --head ${CIRCLE_BRANCH} \
+            --title "🚀 Feature prête : ${CIRCLE_BRANCH}" \
+            --body "Voici les commits inclus dans cette PR :%0A%0A$COMMITS"
+
+  # STAGE MERGE HOTFIX -> MAIN (Fusion automatique)
+  merge_hotfix_main:
+    executor: node/default
+    steps:
+      - checkout
+      - run: |
+          echo "🚨 Fusion automatique du hotfix dans main..."
+          git config --global user.email "circleci@ci.com"
+          git config --global user.name "CircleCI Bot"
+          git fetch origin main
+          git checkout main
+          git merge --no-ff ${CIRCLE_BRANCH}
+          git push origin main
 
 workflows:
   version: 2
 
-  # Pipeline complet pour les branches "develop", "integration" et "main"
   full_pipeline:
     jobs:
-      - build:
-          filters:
-            branches:
-              ignore:
-                - /^hotfix\/.*$/
-                - /^feature\/.*$/
-      # Lancement parallèle des tests (ils ne dépendent que du build)
+      - build
+      # Lancer tous les tests en parallèle après le build
       - unit-tests:
           requires: [build]
-          filters:
-            branches:
-              ignore:
-                - /^hotfix\/.*$/
-                - /^feature\/.*$/
       - integration_tests:
           requires: [build]
-          filters:
-            branches:
-              ignore:
-                - /^hotfix\/.*$/
-                - /^feature\/.*$/
       - regression_tests:
           requires: [build]
-          filters:
-            branches:
-              ignore:
-                - /^hotfix\/.*$/
-                - /^feature\/.*$/
       - performance_tests:
           requires: [build]
-          filters:
-            branches:
-              ignore:
-                - /^hotfix\/.*$/
-                - /^feature\/.*$/
       - security_tests:
           requires: [build]
-          filters:
-            branches:
-              ignore:
-                - /^hotfix\/.*$/
-                - /^feature\/.*$/
       - compatibility_tests:
           requires: [build]
-          filters:
-            branches:
-              ignore:
-                - /^hotfix\/.*$/
-                - /^feature\/.*$/
       - accessibility_tests:
           requires: [build]
-          filters:
-            branches:
-              ignore:
-                - /^hotfix\/.*$/
-                - /^feature\/.*$/
-      # Déploiement - chaque job attend que tous les tests soient terminés
+
+      # 🚀 Déploiement après tous les tests sur develop et main
       - deploy_development:
           requires:
             - unit-tests
@@ -172,18 +151,7 @@ workflows:
           filters:
             branches:
               only: develop
-      - deploy_integration:
-          requires:
-            - unit-tests
-            - integration_tests
-            - regression_tests
-            - performance_tests
-            - security_tests
-            - compatibility_tests
-            - accessibility_tests
-          filters:
-            branches:
-              only: integration
+
       - deploy_production:
           requires:
             - unit-tests
@@ -197,23 +165,29 @@ workflows:
             branches:
               only: main
 
-  # Pipeline minimal pour les branches hotfix (et éventuellement feature)
-  hotfix_pipeline:
-    jobs:
-      - build:
+      # 📌 Gestion automatique des branches temporaires
+      - create_pr_feature:
+          requires:
+            - unit-tests
+            - integration_tests
+            - regression_tests
+            - performance_tests
+            - security_tests
+            - compatibility_tests
+            - accessibility_tests
           filters:
             branches:
-              only:
-                - /^hotfix\/.*$/
-      - minimal-tests:
-          requires: [build]
+              only: /^feature\/.*$/
+
+      - merge_hotfix_main:
+          requires:
+            - unit-tests
+            - integration_tests
+            - regression_tests
+            - performance_tests
+            - security_tests
+            - compatibility_tests
+            - accessibility_tests
           filters:
             branches:
-              only:
-                - /^hotfix\/.*$/
-      - deploy_development:
-          requires: [minimal-tests]
-          filters:
-            branches:
-              only:
-                - /^hotfix\/.*$/
+              only: /^hotfix\/.*$/
