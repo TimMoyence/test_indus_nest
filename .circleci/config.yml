@@ -108,7 +108,6 @@ workflows:
             branches:
               ignore:
                 - /^hotfix\/.*$/
-              ignore:
                 - /^feature\/.*$/
       # Lancement parallèle des tests (ils ne dépendent que du build)
       - unit-tests:
@@ -117,7 +116,6 @@ workflows:
             branches:
               ignore:
                 - /^hotfix\/.*$/
-              ignore:
                 - /^feature\/.*$/
       - integration_tests:
           requires: [build]
@@ -125,7 +123,6 @@ workflows:
             branches:
               ignore:
                 - /^hotfix\/.*$/
-              ignore:
                 - /^feature\/.*$/
       - regression_tests:
           requires: [build]
@@ -133,7 +130,6 @@ workflows:
             branches:
               ignore:
                 - /^hotfix\/.*$/
-              ignore:
                 - /^feature\/.*$/
       - performance_tests:
           requires: [build]
@@ -141,7 +137,6 @@ workflows:
             branches:
               ignore:
                 - /^hotfix\/.*$/
-              ignore:
                 - /^feature\/.*$/
       - security_tests:
           requires: [build]
@@ -149,7 +144,6 @@ workflows:
             branches:
               ignore:
                 - /^hotfix\/.*$/
-              ignore:
                 - /^feature\/.*$/
       - compatibility_tests:
           requires: [build]
@@ -157,7 +151,6 @@ workflows:
             branches:
               ignore:
                 - /^hotfix\/.*$/
-              ignore:
                 - /^feature\/.*$/
       - accessibility_tests:
           requires: [build]
@@ -165,7 +158,6 @@ workflows:
             branches:
               ignore:
                 - /^hotfix\/.*$/
-              ignore:
                 - /^feature\/.*$/
       # Déploiement - chaque job attend que tous les tests soient terminés
       - deploy_development:
