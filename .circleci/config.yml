@@ -8,9 +8,9 @@ jobs:
     executor: node/default
     steps:
       - checkout
-      - run: echo "🚀 Build : Installation des dépendances..."
-      - run: echo "🔍 Build : Analyse de code en cours..."
-      - run: echo "🧹 Build : Cleaning et Packaging de l'application..."
+      - run: echo "🚀 Build - Installation des dépendances..."
+      - run: echo "🔍 Build - Analyse de code en cours..."
+      - run: echo "🧹 Build - Cleaning et Packaging de l'application..."
 
   # Stage TESTS (jobs lancés en parallèle après le build)
   unit-tests:
@@ -21,7 +21,7 @@ jobs:
       - checkout
       - node/install-packages:
           pkg-manager: npm
-      - run: echo "🧪 Unit tests : Lancement des tests complets..."
+      - run: echo "🧪 Unit tests - Lancement des tests complets..."
       - run:
           command: npm install jest-junit
       - run:
@@ -34,44 +34,44 @@ jobs:
     executor: node/default
     steps:
       - checkout
-      - run: echo "🤖 Integration tests : On vérifie les interactions..."
+      - run: echo "🤖 Integration tests - On vérifie les interactions..."
 
   regression_tests:
     executor: node/default
     steps:
       - checkout
-      - run: echo "🔍 Regression tests : À la chasse aux régressions..."
+      - run: echo "🔍 Regression tests - À la chasse aux régressions..."
 
   performance_tests:
     executor: node/default
     steps:
       - checkout
-      - run: echo "🏎️ Performance tests : Boostons la vitesse !"
+      - run: echo "🏎️ Performance tests - Boostons la vitesse !"
 
   security_tests:
     executor: node/default
     steps:
       - checkout
-      - run: echo "🛡️ Security tests : Renforçons la sécurité !"
+      - run: echo "🛡️ Security tests - Renforçons la sécurité !"
 
   compatibility_tests:
     executor: node/default
     steps:
       - checkout
-      - run: echo "🔧 Compatibility tests : Tout s'assemble bien ?"
+      - run: echo "🔧 Compatibility tests - Tout s'assemble bien ?"
 
   accessibility_tests:
     executor: node/default
     steps:
       - checkout
-      - run: echo "🌈 Accessibility tests : Pour une appli accessible et fun !"
+      - run: echo "🌈 Accessibility tests - Pour une appli accessible et fun !"
 
   # Job minimal pour les branches hotfix (tests réduits)
   minimal-tests:
     executor: node/default
     steps:
       - checkout
-      - run: echo "⚡ Hotfix detected : Exécution des tests essentiels uniquement..."
+      - run: echo "⚡ Hotfix detected - Exécution des tests essentiels uniquement..."
       - run: echo "✅ Tests minimaux validés avec succès !"
 
   # Stage DEPLOY
@@ -79,22 +79,22 @@ jobs:
     executor: node/default
     steps:
       - checkout
-      - run: echo "🌱 Déploiement DEV : Préparation de l'environnement..."
-      - run: echo "🚀 Déploiement DEV : Lancement de l'application..."
+      - run: echo "🌱 Déploiement DEV - Préparation de l'environnement..."
+      - run: echo "🚀 Déploiement DEV - Lancement de l'application..."
       - run: echo "🔍 Vérifications et validation fonctionnelle..."
 
   deploy_integration:
     executor: node/default
     steps:
       - checkout
-      - run: echo "🚧 Déploiement INTÉGRATION : Préparation et déploiement..."
+      - run: echo "🚧 Déploiement INTÉGRATION - Préparation et déploiement..."
       - run: echo "✅ Tests de validation et charge..."
 
   deploy_production:
     executor: node/default
     steps:
       - checkout
-      - run: echo "🎉 Déploiement PROD : En production, c'est parti !"
+      - run: echo "🎉 Déploiement PROD - En production, c'est parti !"
       - run: echo "🔒 Vérifications, validations et monitoring activé !"
 
 workflows:
@@ -167,7 +167,7 @@ workflows:
                 - /^hotfix\/.*$/
               ignore:
                 - /^feature\/.*$/
-      # Déploiement : chaque job attend que tous les tests soient terminés
+      # Déploiement - chaque job attend que tous les tests soient terminés
       - deploy_development:
           requires:
             - unit-tests
