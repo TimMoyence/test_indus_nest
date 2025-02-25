@@ -44,9 +44,7 @@ workflows:
   build-test-deploy:
 
     jobs:
-
       - build
-
       - unit_tests:
           requires:
             - build
