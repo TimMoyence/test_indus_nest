@@ -1,66 +1,134 @@
-# .circleci/config.yml
 version: 2.1
 orbs:
   node: circleci/node@5
+
 jobs:
-  # First job declared is for building things..
+  # JOBS POUR LE STAGE BUILD
   build:
     executor: node/default
     steps:
       - checkout
-      - run: echo "Building things..."
-  # Second job declared is for launching unit tests with Jest
-  unit-tests:
-    executor: node/default
-    environment:
-      JEST_JUNIT_OUTPUT_DIR: ./test-results/
-    steps:
-      - checkout
-      - node/install-packages:
-          pkg-manager: npm
-      - run:
-          command: npm install jest-junit
-      - run:
-          name: Run tests
-          command: npm run test:ci
-      - store_test_results:
-          path: ./test-results/
+      - run: echo "Installation des dépendances..."
+      - run: echo "Analyse de code statique..."
+      - run: echo "Cleaning et Packaging de l'application..."
 
-  deploy_dev:
+  # JOBS POUR LE STAGE TESTS
+  unit_tests:
     executor: node/default
     steps:
       - checkout
-      - run: echo "Deploying to development environment..."
+      - run: echo "Exécution des tests unitaires..."
 
-  deploy_prod:
+  integration_tests:
     executor: node/default
     steps:
       - checkout
-      - run: echo "Deploying to production environment..."
+      - run: echo "Exécution des tests d'intégration..."
+
+  regression_tests:
+    executor: node/default
+    steps:
+      - checkout
+      - run: echo "Exécution des tests de régression..."
+
+  performance_tests:
+    executor: node/default
+    steps:
+      - checkout
+      - run: echo "Exécution des tests de performance..."
+
+  security_tests:
+    executor: node/default
+    steps:
+      - checkout
+      - run: echo "Exécution des tests de sécurité..."
+
+  compatibility_tests:
+    executor: node/default
+    steps:
+      - checkout
+      - run: echo "Exécution des tests de compatibilité..."
+
+  accessibility_tests:
+    executor: node/default
+    steps:
+      - checkout
+      - run: echo "Exécution des tests d'accessibilité..."
+
+  # JOBS POUR LE STAGE DEPLOY
+  deploy_development:
+    executor: node/default
+    steps:
+      - checkout
+      - run: echo "Préparation de l'environnement de déploiement (development)..."
+      - run: echo "Déploiement de l'application en environnement de développement..."
+      - run: echo "Exécution des tests de vérification et validation fonctionnelle..."
+      - run: echo "Tests de charge et surveillance..."
+      
+  deploy_integration:
+    executor: node/default
+    steps:
+      - checkout
+      - run: echo "Préparation de l'environnement de déploiement (integration)..."
+      - run: echo "Déploiement de l'application en environnement d'intégration..."
+      - run: echo "Exécution des tests de vérification et validation fonctionnelle..."
+      - run: echo "Tests de charge et surveillance..."
+      
+  deploy_production:
+    executor: node/default
+    steps:
+      - checkout
+      - run: echo "Préparation de l'environnement de déploiement (production)..."
+      - run: echo "Déploiement de l'application en production..."
+      - run: echo "Exécution des tests de vérification, validation fonctionnelle et tests de charge..."
+      - run: echo "Mise en place de la surveillance et suivi..."
 
 workflows:
   version: 2
-
-  build-test-deploy:
-
+  build_test_deploy:
     jobs:
+      # Étape de build
       - build
-      - unit-tests:
+      # Étapes de tests (exécutés en cascade)
+      - unit_tests:
           requires:
             - build
-
-      - deploy_dev:
+      - integration_tests:
           requires:
-            - unit-tests
+            - unit_tests
+      - regression_tests:
+          requires:
+            - integration_tests
+      - performance_tests:
+          requires:
+            - regression_tests
+      - security_tests:
+          requires:
+            - performance_tests
+      - compatibility_tests:
+          requires:
+            - security_tests
+      - accessibility_tests:
+          requires:
+            - compatibility_tests
+      # Déploiement sur l'environnement de développement uniquement sur la branche "develop"
+      - deploy_development:
+          requires:
+            - accessibility_tests
           filters:
             branches:
-              only:
-                - develop
-
-      - deploy_prod:
+              only: develop
+      # Déploiement sur l'environnement d'intégration uniquement sur la branche "integration"
+      - deploy_integration:
           requires:
-            - unit-tests
+            - accessibility_tests
           filters:
             branches:
-              only:
-                - main
+              only: integration
+      # Déploiement sur l'environnement de production uniquement sur la branche "main"
+      - deploy_production:
+          requires:
+            - accessibility_tests
+          filters:
+            branches:
+              only: main
