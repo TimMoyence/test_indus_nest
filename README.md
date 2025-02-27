@@ -1,43 +1,83 @@
-# Next.js + Jest
+# 📘 Documentation Technique - CI/CD avec CircleCI
 
-This example shows how to configure Jest to work with Next.js.
+## 🏗️ Gestion des branches
 
-This includes Next.js' built-in support for Global CSS, CSS Modules and TypeScript. This example also shows how to use Jest with the App Router and React Server Components.
+Le projet suit une approche GitFlow classique avec trois branches principales :
 
-> **Note:** Since tests can be co-located alongside other files inside the App Router, we have placed those tests in `app/` to demonstrate this behavior (which is different than `pages/`). You can still place all tests in `__tests__` if you prefer.
+- **`develop`** : branche de développement où sont intégrées les nouvelles fonctionnalités.
+- **`integration`** : environnement de test intermédiaire avant la mise en production.
+- **`main`** : branche principale contenant le code stable et validé.
 
-## Deploy your own
+Branches secondaires :
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/vercel/next.js/tree/canary/examples/with-jest&project-name=with-jest&repository-name=with-jest)
+- **`feature/*`** : branches dédiées aux nouvelles fonctionnalités.
+- **`hotfix/*`** : branches utilisées pour corriger rapidement un bug en production.
 
-## How to Use
+## 🔄 Workflow de développement en agilité
 
-Execute [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app) with [npm](https://docs.npmjs.com/cli/init), [Yarn](https://yarnpkg.com/lang/en/docs/cli/create/), or [pnpm](https://pnpm.io) to bootstrap the example:
+1. **Création d’une nouvelle fonctionnalité** :
+   - Un développeur crée une branche `feature/nom-fonctionnalité` à partir de `develop`.
+   - Développement et tests en local.
+   - Validation avec une **Pull Request** vers `develop`.
+2. **Validation et intégration** :
 
-```bash
-npx create-next-app --example with-jest with-jest-app
-```
+   - Une fois la PR approuvée, la branche `feature/*` est fusionnée dans `develop`.
+   - Déploiement automatique sur l’environnement de développement.
+   - Exécution des tests unitaires et d’intégration.
 
-```bash
-yarn create next-app --example with-jest with-jest-app
-```
+3. **Préparation à la mise en production** :
 
-```bash
-pnpm create next-app --example with-jest with-jest-app
-```
+   - Les modifications validées sont fusionnées dans `integration`.
+   - Déploiement automatique en staging.
+   - Exécution des tests de performance et de validation.
 
-## Running Tests
+4. **Déploiement en production** :
+   - Une fois les tests validés, la branche `integration` est fusionnée dans `main`.
+   - Déploiement automatique en production.
+   - Surveillance post-déploiement.
 
-```bash
-npm test
-```
+## ⚙️ Description technique des jobs
 
-```bash
-yarn test
-```
+### **1. Build**
 
-```bash
-pnpm test
-```
+- **`install_dependencies`** : Installe les dépendances et vérifie la présence de Next.js.
+- **`code_analysis`** : Exécute une analyse statique du code.
+- **`clean_package_and_update`** : Nettoie, installe les dépendances et prépare l’application.
+- **`build_project`** : Compile le projet.
 
-Deploy it to the cloud with [Vercel](https://vercel.com/new?utm_source=github&utm_medium=readme&utm_campaign=next-example) ([Documentation](https://nextjs.org/docs/deployment)).
+### **2. Tests**
+
+- **`unit-tests`** : Exécute les tests unitaires.
+- **`integration_tests`** : Vérifie l’intégration des composants.
+- **`regression_tests`** : Vérifie la non-régression.
+- **`performance_tests`** : Teste la performance de l’application.
+- **`security_tests`** : Vérifie la sécurité du code.
+- **`compatibility_tests`** : Vérifie la compatibilité avec différents environnements.
+- **`accessibility_tests`** : Teste l’accessibilité du projet.
+
+### **3. Déploiement**
+
+- **`push_version`** : Génère un tag de version basé sur la branche active.
+- **`deploy_environment_prep`** : Prépare l’environnement de déploiement.
+- **`deploy_development`** : Déploie la version en développement.
+- **`deploy_staging`** : Déploie la version de staging.
+- **`deploy_production`** : Déploie la version en production.
+
+### **4. Gestion des branches spécifiques**
+
+- **`create_pr_feature`** : Crée automatiquement une PR pour les branches `feature/*`.
+- **`test_hotfix_necessary`** : Exécute uniquement les tests critiques sur les branches `hotfix/*`.
+
+## 📸 Captures d’écran des pipelines exécutés
+
+_(À insérer : captures d’écran des exécutions réussies des pipelines sur les différentes branches.)_
+
+## 🔗 Référentiel GitHub
+
+Lien vers le dépôt public : [🔗 GitHub Repository](https://github.com/mon-repo-public)
+
+Le dépôt contient :
+
+- Un `README.md` détaillé décrivant le projet et son workflow CI/CD.
+- Le fichier de configuration `config.yml` de CircleCI documenté.
+- Le code source de l’application (une calculatrice).

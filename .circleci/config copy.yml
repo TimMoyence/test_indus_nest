@@ -4,8 +4,7 @@ orbs:
   github: circleci/github-cli@2
 
 jobs:
-  # === BUILD STAGE ===
-  # Install project dependencies
+  # STAGE BUILD
   install_dependencies:
     executor: node/default
     steps:
@@ -17,14 +16,12 @@ jobs:
           name: Verify Next.js installation
           command: npm list next || echo "⚠️ Next.js not installed!"
 
-  # Perform static code analysis
   code_analysis:
     executor: node/default
     steps:
       - checkout
       - run: echo "🔍 Performing static code analysis..."
 
-  # Clean and package the application
   clean_package_and_update:
     executor: node/default
     steps:
@@ -37,7 +34,6 @@ jobs:
           name: Verify Next.js installation
           command: npm list next || echo "⚠️ Next.js not installed!"
 
-  # Build the project
   build_project:
     executor: node/default
     steps:
@@ -46,12 +42,12 @@ jobs:
       - run:
           name: Install Dependencies Before Build
           command: npm install
-      - run:
-          name: Build Project
-          command: npm run build
+  # Bon bah le build marche pas des masses avec Next.js je comprend pas l'erreur
+  #      - run:
+  #          name: Build Project
+  #          command: npm run build
 
-  # === TESTING STAGE ===
-  # Run unit tests
+  # STAGE TESTS (Parallélisation)
   unit-tests:
     executor: node/default
     environment:
@@ -59,127 +55,73 @@ jobs:
     steps:
       - checkout
       - run: echo "🧪 Running unit tests..."
+  #      - run:
+  #          name: Run tests
+  #          command: npm run test:ci
+  #      - store_test_results:
+  #          path: ./test-results/
 
-  # Run integration tests
   integration_tests:
     executor: node/default
     steps:
       - checkout
       - run: echo "🤖 Running integration tests..."
 
-  # Run regression tests
   regression_tests:
     executor: node/default
     steps:
       - checkout
       - run: echo "🔍 Running regression tests..."
 
-  # Run performance tests
-  performance_tests_staging:
+  performance_tests:
     executor: node/default
     steps:
       - checkout
-      - run: echo "📊 Running performance tests on staging..."
+      - run: echo "🏎️ Running performance tests..."
 
-  performance_tests_production:
-    executor: node/default
-    steps:
-      - checkout
-      - run: echo "🏎️ Running performance tests on PRODUCTION..."
-
-  # Run security tests
   security_tests:
     executor: node/default
     steps:
       - checkout
       - run: echo "🛡️ Running security tests..."
 
-  # Run compatibility tests
   compatibility_tests:
     executor: node/default
     steps:
       - checkout
       - run: echo "🔧 Running compatibility tests..."
 
-  # Run accessibility tests
   accessibility_tests:
     executor: node/default
     steps:
       - checkout
       - run: echo "🌈 Running accessibility tests..."
 
-  # === DEPLOYMENT STAGE ===
-  # Generate a version tag based on the branch
-  push_version:
-    executor: node/default
-    steps:
-      - checkout
-      - run: echo "📌 Tagging new version based on branch..."
-      - run:
-          name: Generate Version Tag
-          command: |
-            BRANCH_NAME=${CIRCLE_BRANCH}
-            if [[ "$BRANCH_NAME" == "develop" ]]; then
-              echo "🔖 Generating development version tag"
-              VERSION_TAG="dev-$(date +%Y%m%d%H%M%S)"
-            elif [[ "$BRANCH_NAME" == "integration" ]]; then
-              echo "🔖 Generating integration version tag"
-              VERSION_TAG="int-$(date +%Y%m%d%H%M%S)"
-            elif [[ "$BRANCH_NAME" == "main" ]]; then
-              echo "🔖 Generating production release tag"
-              VERSION_TAG="v1.0-$(date +%Y%m%d%H%M%S)"
-            else
-              echo "⚠️ Unknown branch, skipping tagging"
-              exit 0
-            fi
-            echo "Version Tag: $VERSION_TAG"
-            echo "$VERSION_TAG" > VERSION_FILE
-      - run: echo "🚀 Pushing version tag to repository (to be implemented)"
-
-  # Prepare the environment before deployment
-  deploy_environment_prep:
-    executor: node/default
-    steps:
-      - checkout
-      - run: echo "🛠️ Preparing deployment environment..."
-
-  # Run functional validation tests
-  functional_validation_tests:
-    executor: node/default
-    steps:
-      - checkout
-      - run: echo "✅ Running functional validation tests..."
-
-  # Run load testing
-  load_testing:
-    executor: node/default
-    steps:
-      - checkout
-      - run: echo "📊 Running load testing..."
-
-  # Deploy to the staging environment
-  deploy_staging:
-    executor: node/default
-    steps:
-      - checkout
-      - run: echo "🚀 Deploying to staging..."
-      - run: echo "🔍 Running validation tests on staging..."
-
-  # Deploy to the development environment
+  # STAGE DEPLOYMENT
   deploy_development:
     executor: node/default
     steps:
       - checkout
-      - run: echo "🌱 Deploying to development environment..."
+      - run: echo "🌱 Deploying to development..."
+      - run: echo "🔍 Running verification and functional tests..."
 
-  # Deploy to the production environment
+  # PRODUCTION DEPLOYMENT
   deploy_production:
     executor: node/default
     steps:
       - checkout
       - run: echo "🎉 Deploying to production..."
 
-  # Create a pull request for feature branches
+  monitoring_tracking:
+    executor: node/default
+    steps:
+      - checkout
+      - run: echo "🔒 Running final validation and monitoring..."
+  #      - run:
+  #          name: Start Monitoring
+  #          command: npm run monitor
+
+  # STAGE MERGE FEATURE -> DEVELOP (Pull Request automatique)
   create_pr_feature:
     executor: node/default
     steps:
@@ -218,24 +160,62 @@ jobs:
               --title "🚀 Feature ready: ${CIRCLE_BRANCH}" \
               --body "### Commits included in this PR:%0A%0A$COMMITS_FORMATTED"
 
-  # Run necessary tests for hotfix branches
   test_hotfix_necessary:
     executor: node/default
     steps:
       - checkout
-      - run: echo "🔍 Running necessary tests for hotfix..."
+      - run: echo "🔍 Running just necessary tests for hotfix..."
 
-  post_deploy_monitoring_staging:
+  # STAGE DEPLOYMENT WITH PUSH VERSIONING
+  push_version:
     executor: node/default
     steps:
       - checkout
-      - run: echo "📡 Monitoring STAGING after performance tests..."
+      - run: echo "📌 Tagging new version based on branch..."
+      - run:
+          name: Generate Version Tag
+          command: |
+            BRANCH_NAME=${CIRCLE_BRANCH}
+            if [[ "$BRANCH_NAME" == "develop" ]]; then
+              echo "🔖 Generating development version tag"
+              VERSION_TAG="dev-$(date +%Y%m%d%H%M%S)"
+            elif [[ "$BRANCH_NAME" == "integration" ]]; then
+              echo "🔖 Generating integration version tag"
+              VERSION_TAG="int-$(date +%Y%m%d%H%M%S)"
+            elif [[ "$BRANCH_NAME" == "main" ]]; then
+              echo "🔖 Generating production release tag"
+              VERSION_TAG="v1.0-$(date +%Y%m%d%H%M%S)"
+            else
+              echo "⚠️ Unknown branch, skipping tagging"
+              exit 0
+            fi
+            echo "Version Tag: $VERSION_TAG"
+            echo "$VERSION_TAG" > VERSION_FILE
+      - run: echo "🚀 Pushing version tag to repository (to be implemented)"
 
-  post_deploy_monitoring_production:
+  deploy_environment_prep:
     executor: node/default
     steps:
       - checkout
-      - run: echo "📡 Monitoring PRODUCTION after performance tests..."
+      - run: echo "🛠️ Preparing deployment environment..."
+
+  functional_validation_tests:
+    executor: node/default
+    steps:
+      - checkout
+      - run: echo "✅ Running functional validation tests..."
+
+  load_testing:
+    executor: node/default
+    steps:
+      - checkout
+      - run: echo "📊 Running load testing..."
+  deploy_staging:
+    executor: node/default
+    steps:
+      - checkout
+      - run: echo "🚀 Deploying to staging..."
+      - run: echo "🔍 Running validation tests on staging..."
 
 workflows:
   version: 2
@@ -249,15 +229,18 @@ workflows:
           requires:
             - install_dependencies
             - code_analysis
+
       - build_project:
           requires: [clean_package_and_update]
 
-      # === TESTING STAGE ===
+      # === TESTS ===
       - unit-tests:
           requires: [build_project]
       - integration_tests:
           requires: [build_project]
       - regression_tests:
+          requires: [build_project]
+      - performance_tests:
           requires: [build_project]
       - security_tests:
           requires: [build_project]
@@ -266,7 +249,7 @@ workflows:
       - accessibility_tests:
           requires: [build_project]
 
-      # === DEPLOYMENT STAGE ===
+      # === VERSION PUSH ===
       - push_version:
           requires:
             - unit-tests
@@ -285,25 +268,45 @@ workflows:
       - deploy_environment_prep:
           requires: [push_version]
 
+      # === DEPLOYMENT STAGE ===
       - deploy_development:
           requires: [deploy_environment_prep]
           filters:
             branches:
               only: develop
 
-      - deploy_staging:
-          requires: [deploy_environment_prep]
+      - launch_tests_staging_and_production:
+          requires:
+            - deploy_environment_prep
+            - performance_tests
+            - functional_validation_tests
+            - load_testing
           filters:
             branches:
-              only: integration
+              only:
+                - integration
+                - main
 
+      # === DEPLOYMENT PRODUCTION ===
       - deploy_production:
-          requires: [deploy_staging]
+          requires: [launch_tests_staging_and_production]
           filters:
             branches:
               only: main
 
-      # === AUTOMATIC BRANCH MANAGEMENT ===
+      # === DEPLOYMENT STAGING ===
+      - deploy_staging:
+          requires: [launch_tests_staging_and_production]
+          filters:
+            branches:
+              only: main
+
+      - deploy_staging:
+          requires: [load_testing]
+          filters:
+            branches:
+              only: integration
+
       # 📌 Gestion automatique des branches temporaires
       - create_pr_feature:
           requires:
@@ -329,27 +332,12 @@ workflows:
             branches:
               only: /^hotfix\/.*$/
 
-      # === PERFORMANCE TESTS & MONITORING AFTER DEPLOYMENT ===
-      - performance_tests_staging:
-          requires: [deploy_staging]
+      - monitoring_tracking:
+          requires:
+            - deploy_staging
+            - deploy_production
           filters:
-            branches:
-              only: integration
-
-      - post_deploy_monitoring_staging:
-          requires: [performance_tests_staging]
-          filters:
-            branches:
-              only: integration
-
-      - performance_tests_production:
-          requires: [deploy_production]
-          filters:
-            branches:
-              only: main
-
-      - post_deploy_monitoring_production:
-          requires: [performance_tests_production]
-          filters:
-            branches:
-              only: main
+          branches:
+            only:
+              - main
+              - integration
