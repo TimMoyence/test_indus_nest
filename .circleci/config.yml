@@ -219,6 +219,12 @@ jobs:
       - checkout
       - run: echo "🔍 Running necessary tests for hotfix..."
 
+  post_deploy_monitoring:
+    executor: node/default
+    steps:
+      - checkout
+      - run: echo "📡 Monitoring deployment after performance tests..."
+
 workflows:
   version: 2
 
@@ -240,8 +246,6 @@ workflows:
       - integration_tests:
           requires: [build_project]
       - regression_tests:
-          requires: [build_project]
-      - performance_tests:
           requires: [build_project]
       - security_tests:
           requires: [build_project]
@@ -283,6 +287,57 @@ workflows:
 
       - deploy_production:
           requires: [deploy_staging]
+          filters:
+            branches:
+              only: main
+
+      # === AUTOMATIC BRANCH MANAGEMENT ===
+      # 📌 Gestion automatique des branches temporaires
+      - create_pr_feature:
+          requires:
+            - unit-tests
+            - integration_tests
+            - regression_tests
+            - security_tests
+            - compatibility_tests
+            - accessibility_tests
+          filters:
+            branches:
+              only: /^feature\/.*$/
+
+      # Hotfix merge to main With just necessary tests
+      - test_hotfix_necessary:
+          requires:
+            - unit-tests
+            - integration_tests
+            - regression_tests
+            - security_tests
+            - compatibility_tests
+          filters:
+            branches:
+              only: /^hotfix\/.*$/
+
+      # === PERFORMANCE TESTS & MONITORING AFTER DEPLOYMENT ===
+      - performance_tests:
+          requires: [deploy_staging]
+          filters:
+            branches:
+              only: integration
+
+      - post_deploy_monitoring:
+          requires: [performance_tests]
+          filters:
+            branches:
+              only: integration
+
+      - performance_tests:
+          requires: [deploy_production]
+          filters:
+            branches:
+              only: main
+
+      - post_deploy_monitoring:
+          requires: [performance_tests]
           filters:
             branches:
               only: main
