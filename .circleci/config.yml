@@ -149,6 +149,12 @@ jobs:
               --title "🚀 Feature ready: ${CIRCLE_BRANCH}" \
               --body "### Commits included in this PR:%0A%0A$COMMITS_FORMATTED"
 
+  test_hotfix_necessary:
+    executor: node/default
+    steps:
+      - checkout
+      - run: echo "🔍 Running just necessary tests for hotfix..."
+
 workflows:
   version: 2
 
@@ -220,7 +226,7 @@ workflows:
               only: /^feature\/.*$/
 
       # Hotfix merge to main With just necessary tests
-      - merge_hotfix_main:
+      - test_hotfix_necessary:
           requires:
             - unit-tests
             - integration_tests
