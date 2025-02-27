@@ -111,7 +111,6 @@ jobs:
     steps:
       - checkout
       - run: echo "🎉 Deploying to production..."
-      - run: echo "🔒 Running final validation and monitoring..."
 
   monitoring_tracking:
     executor: node/default
@@ -167,6 +166,57 @@ jobs:
       - checkout
       - run: echo "🔍 Running just necessary tests for hotfix..."
 
+  # STAGE DEPLOYMENT WITH PUSH VERSIONING
+  push_version:
+    executor: node/default
+    steps:
+      - checkout
+      - run: echo "📌 Tagging new version based on branch..."
+      - run:
+          name: Generate Version Tag
+          command: |
+            BRANCH_NAME=${CIRCLE_BRANCH}
+            if [[ "$BRANCH_NAME" == "develop" ]]; then
+              echo "🔖 Generating development version tag"
+              VERSION_TAG="dev-$(date +%Y%m%d%H%M%S)"
+            elif [[ "$BRANCH_NAME" == "integration" ]]; then
+              echo "🔖 Generating integration version tag"
+              VERSION_TAG="int-$(date +%Y%m%d%H%M%S)"
+            elif [[ "$BRANCH_NAME" == "main" ]]; then
+              echo "🔖 Generating production release tag"
+              VERSION_TAG="v1.0-$(date +%Y%m%d%H%M%S)"
+            else
+              echo "⚠️ Unknown branch, skipping tagging"
+              exit 0
+            fi
+            echo "Version Tag: $VERSION_TAG"
+            echo "$VERSION_TAG" > VERSION_FILE
+      - run: echo "🚀 Pushing version tag to repository (to be implemented)"
+
+  deploy_environment_prep:
+    executor: node/default
+    steps:
+      - checkout
+      - run: echo "🛠️ Preparing deployment environment..."
+
+  functional_validation_tests:
+    executor: node/default
+    steps:
+      - checkout
+      - run: echo "✅ Running functional validation tests..."
+
+  load_testing:
+    executor: node/default
+    steps:
+      - checkout
+      - run: echo "📊 Running load testing..."
+  deploy_staging:
+    executor: node/default
+    steps:
+      - checkout
+      - run: echo "🚀 Deploying to staging..."
+      - run: echo "🔍 Running validation tests on staging..."
+
 workflows:
   version: 2
 
@@ -199,32 +249,63 @@ workflows:
       - accessibility_tests:
           requires: [build_project]
 
-      # === DEPLOYMENT STAGE ===
-      - deploy_development:
+      # === VERSION PUSH ===
+      - push_version:
           requires:
             - unit-tests
             - integration_tests
             - regression_tests
-            - performance_tests
             - security_tests
             - compatibility_tests
             - accessibility_tests
+          filters:
+            branches:
+              only:
+                - develop
+                - integration
+                - main
+
+      - deploy_environment_prep:
+          requires: [push_version]
+
+      # === DEPLOYMENT STAGE ===
+      - deploy_development:
+          requires: [deploy_environment_prep]
           filters:
             branches:
               only: develop
 
-      - deploy_production:
+      - launch_tests_staging_and_production:
           requires:
-            - unit-tests
-            - integration_tests
-            - regression_tests
+            - deploy_environment_prep
             - performance_tests
-            - security_tests
-            - compatibility_tests
-            - accessibility_tests
+            - functional_validation_tests
+            - load_testing
+          filters:
+            branches:
+              only:
+                - integration
+                - main
+
+      # === DEPLOYMENT PRODUCTION ===
+      - deploy_production:
+          requires: [launch_tests_staging_and_production]
           filters:
             branches:
               only: main
+
+      # === DEPLOYMENT STAGING ===
+      - deploy_staging:
+          requires: [launch_tests_staging_and_production]
+          filters:
+            branches:
+              only: main
+
+      - deploy_staging:
+          requires: [load_testing]
+          filters:
+            branches:
+              only: integration
 
       # 📌 Gestion automatique des branches temporaires
       - create_pr_feature:
@@ -232,7 +313,6 @@ workflows:
             - unit-tests
             - integration_tests
             - regression_tests
-            - performance_tests
             - security_tests
             - compatibility_tests
             - accessibility_tests
@@ -253,4 +333,11 @@ workflows:
               only: /^hotfix\/.*$/
 
       - monitoring_tracking:
-          requires: [deploy_production]
+          requires:
+            - deploy_staging
+            - deploy_production
+          filters:
+          branches:
+            only:
+              - main
+              - integration
