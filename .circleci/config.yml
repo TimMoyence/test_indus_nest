@@ -22,11 +22,19 @@ jobs:
           name: Run Linter
           command: npm run lint
 
-  clean_package:
+  clean_package_and_update:
     executor: node/default
     steps:
       - checkout
       - run: echo "🧹 Cleaning and packaging the application..."
+      - run:
+          name: Install dependancy
+          command: npm install
+
+  build_project:
+    executor: node/default
+    steps:
+      - checkout
       - run:
           name: Build Project
           command: npm run build
@@ -38,11 +46,7 @@ jobs:
       JEST_JUNIT_OUTPUT_DIR: ./test-results/
     steps:
       - checkout
-      - node/install-packages:
-          pkg-manager: npm
       - run: echo "🧪 Running unit tests..."
-      - run:
-          command: npm install jest-junit
       - run:
           name: Run tests
           command: npm run test:ci
@@ -163,26 +167,29 @@ workflows:
       # === BUILD STAGE ===
       - install_dependencies
       - code_analysis
-      - clean_package:
+      - clean_package_and_update:
           requires:
             - install_dependencies
             - code_analysis
 
+      - build_project:
+          requires: [clean_package_and_update]
+
       # === TESTS ===
       - unit-tests:
-          requires: [clean_package]
+          requires: [build_project]
       - integration_tests:
-          requires: [clean_package]
+          requires: [build_project]
       - regression_tests:
-          requires: [clean_package]
+          requires: [build_project]
       - performance_tests:
-          requires: [clean_package]
+          requires: [build_project]
       - security_tests:
-          requires: [clean_package]
+          requires: [build_project]
       - compatibility_tests:
-          requires: [clean_package]
+          requires: [build_project]
       - accessibility_tests:
-          requires: [clean_package]
+          requires: [build_project]
 
       # === DEPLOYMENT STAGE ===
       - deploy_development:
