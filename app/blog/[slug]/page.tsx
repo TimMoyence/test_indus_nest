@@ -1,17 +1,15 @@
 import { Metadata } from 'next';
 
-type Params = {
-  slug: string;
-};
-
-export async function generateMetadata({
-  params,
-}: {
-  params: Params;
-}): Promise<Metadata> {
-  return { title: `Post: ${params.slug}` };
+interface Props {
+  params: Promise<{ slug: string }>;
 }
 
-export default function Page({ params }: { params: Params }) {
-  return <h1>Slug: {params.slug}</h1>;
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const resolvedParams = await params; // Await the promise
+  return { title: `Post: ${resolvedParams.slug}` };
+}
+
+export default async function Page({ params }: Props) {
+  const resolvedParams = await params; // Await the promise
+  return <h1>Slug: {resolvedParams.slug}</h1>;
 }
