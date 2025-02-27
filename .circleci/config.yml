@@ -75,11 +75,17 @@ jobs:
       - run: echo "🔍 Running regression tests..."
 
   # Run performance tests
-  performance_tests:
+  performance_tests_staging:
     executor: node/default
     steps:
       - checkout
-      - run: echo "🏎️ Running performance tests..."
+      - run: echo "📊 Running performance tests on staging..."
+
+  performance_tests_production:
+    executor: node/default
+    steps:
+      - checkout
+      - run: echo "🏎️ Running performance tests on PRODUCTION..."
 
   # Run security tests
   security_tests:
@@ -219,11 +225,17 @@ jobs:
       - checkout
       - run: echo "🔍 Running necessary tests for hotfix..."
 
-  post_deploy_monitoring:
+  post_deploy_monitoring_staging:
     executor: node/default
     steps:
       - checkout
-      - run: echo "📡 Monitoring deployment after performance tests..."
+      - run: echo "📡 Monitoring STAGING after performance tests..."
+
+  post_deploy_monitoring_production:
+    executor: node/default
+    steps:
+      - checkout
+      - run: echo "📡 Monitoring PRODUCTION after performance tests..."
 
 workflows:
   version: 2
@@ -318,25 +330,25 @@ workflows:
               only: /^hotfix\/.*$/
 
       # === PERFORMANCE TESTS & MONITORING AFTER DEPLOYMENT ===
-      - performance_tests:
+      - performance_tests_staging:
           requires: [deploy_staging]
           filters:
             branches:
               only: integration
 
-      - post_deploy_monitoring:
+      - post_deploy_monitoring_staging:
           requires: [performance_tests]
           filters:
             branches:
               only: integration
 
-      - performance_tests:
+      - performance_tests_production:
           requires: [deploy_production]
           filters:
             branches:
               only: main
 
-      - post_deploy_monitoring:
+      - post_deploy_monitoring_production:
           requires: [performance_tests]
           filters:
             branches:
