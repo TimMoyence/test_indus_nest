@@ -50,7 +50,7 @@ Branches secondaires :
 - **`unit-tests`** : Exécute les tests unitaires.
 - **`integration_tests`** : Vérifie l’intégration des composants.
 - **`regression_tests`** : Vérifie la non-régression.
-- **`performance_tests`** : Teste la performance de l’application.
+- **`performance_tests`** : Teste la performance de l’application après la mise en production sur main ou integration.
 - **`security_tests`** : Vérifie la sécurité du code.
 - **`compatibility_tests`** : Vérifie la compatibilité avec différents environnements.
 - **`accessibility_tests`** : Teste l’accessibilité du projet.
@@ -70,14 +70,8 @@ Branches secondaires :
 
 ## 📸 Captures d’écran des pipelines exécutés
 
-_(À insérer : captures d’écran des exécutions réussies des pipelines sur les différentes branches.)_
+Les capture d'ecrans sont directement disponible dans le dossier [documentation](./documentation)
 
 ## 🔗 Référentiel GitHub
 
-Lien vers le dépôt public : [🔗 GitHub Repository](https://github.com/mon-repo-public)
-
-Le dépôt contient :
-
-- Un `README.md` détaillé décrivant le projet et son workflow CI/CD.
-- Le fichier de configuration `config.yml` de CircleCI documenté.
-- Le code source de l’application (une calculatrice).
+Lien vers le dépôt public : [🔗 GitHub Repository](https://github.com/TimMoyence/test_indus_nest)
