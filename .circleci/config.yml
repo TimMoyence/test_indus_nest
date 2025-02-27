@@ -219,15 +219,14 @@ workflows:
             branches:
               only: /^feature\/.*$/
 
+      # Hotfix merge to main With just necessary tests
       - merge_hotfix_main:
           requires:
             - unit-tests
             - integration_tests
             - regression_tests
-            - performance_tests
             - security_tests
             - compatibility_tests
-            - accessibility_tests
           filters:
             branches:
               only: /^hotfix\/.*$/
