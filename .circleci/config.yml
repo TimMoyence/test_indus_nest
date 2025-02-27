@@ -337,7 +337,7 @@ workflows:
               only: integration
 
       - post_deploy_monitoring_staging:
-          requires: [performance_tests]
+          requires: [performance_tests_staging]
           filters:
             branches:
               only: integration
@@ -349,7 +349,7 @@ workflows:
               only: main
 
       - post_deploy_monitoring_production:
-          requires: [performance_tests]
+          requires: [performance_tests_production]
           filters:
             branches:
               only: main
