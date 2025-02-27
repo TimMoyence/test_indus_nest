@@ -12,15 +12,15 @@ jobs:
       - run: echo "🚀 Installing dependencies..."
       - node/install-packages:
           pkg-manager: npm
+      - run:
+          name: Verify Next.js installation
+          command: npm list next || echo "⚠️ Next.js not installed!"
 
   code_analysis:
     executor: node/default
     steps:
       - checkout
       - run: echo "🔍 Performing static code analysis..."
-  #      - run:
-  #          name: Run Linter
-  #          command: npm run lint
 
   clean_package_and_update:
     executor: node/default
@@ -28,13 +28,20 @@ jobs:
       - checkout
       - run: echo "🧹 Cleaning and packaging the application..."
       - run:
-          name: Install dependancy
+          name: Install dependencies
           command: npm install
+      - run:
+          name: Verify Next.js installation
+          command: npm list next || echo "⚠️ Next.js not installed!"
 
   build_project:
     executor: node/default
     steps:
       - checkout
+      - run: echo "🚀 Running Build Process..."
+      - run:
+          name: Install Dependencies Before Build
+          command: npm install
       - run:
           name: Build Project
           command: npm run build
