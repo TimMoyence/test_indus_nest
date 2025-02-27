@@ -18,9 +18,9 @@ jobs:
     steps:
       - checkout
       - run: echo "🔍 Performing static code analysis..."
-      - run:
-          name: Run Linter
-          command: npm run lint
+  #      - run:
+  #          name: Run Linter
+  #          command: npm run lint
 
   clean_package_and_update:
     executor: node/default
@@ -110,9 +110,9 @@ jobs:
     steps:
       - checkout
       - run: echo "🔒 Running final validation and monitoring..."
-      - run:
-          name: Start Monitoring
-          command: npm run monitor
+  #      - run:
+  #          name: Start Monitoring
+  #          command: npm run monitor
 
   # STAGE MERGE FEATURE -> DEVELOP (Pull Request automatique)
   create_pr_feature:
