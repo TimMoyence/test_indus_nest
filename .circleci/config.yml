@@ -166,6 +166,13 @@ jobs:
       - checkout
       - run: echo "🌱 Deploying to development environment..."
 
+  # Deploy to the production environment
+  deploy_production:
+    executor: node/default
+    steps:
+      - checkout
+      - run: echo "🎉 Deploying to production..."
+
   # Create a pull request for feature branches
   create_pr_feature:
     executor: node/default
