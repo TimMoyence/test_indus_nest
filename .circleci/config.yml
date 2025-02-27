@@ -298,7 +298,7 @@ workflows:
               only: integration
 
       - deploy_production:
-          requires: [deploy_staging]
+          requires: [deploy_environment_prep]
           filters:
             branches:
               only: main
